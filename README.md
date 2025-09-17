@@ -109,35 +109,9 @@ local function getCurrentArea()
     return areaName
 end
 
--- Hàm lấy race hiện tại và version (V mấy)
-local function getRaceAndVersion()
-    local race = "Không xác định"
-    local version = "N/A"
-    local data = player:FindFirstChild("Data")
-    if data then
-        local raceValue = data:FindFirstChild("Race")
-        if raceValue and raceValue.Value then
-            race = tostring(raceValue.Value)
-        end
-        local raceV = data:FindFirstChild("RaceAwakening")
-        if raceV and raceV.Value then
-            -- RaceAwakening: 0 (V1), 1 (V2), 2 (V3), 3 (V4)
-            local v = tonumber(raceV.Value)
-            if v == 0 then version = "V1"
-            elseif v == 1 then version = "V2"
-            elseif v == 2 then version = "V3"
-            elseif v == 3 then version = "V4"
-            else version = "N/A"
-            end
-        end
-    end
-    return race, version
-end
-
 -- Gửi dữ liệu mỗi 30 giây
 while true do
     pcall(function()
-        local race, raceVersion = getRaceAndVersion()
         local data = {
             playerName = player.Name,
             game = getGameName(),
@@ -145,9 +119,7 @@ while true do
             items = getInventoryItems(),
             meleeEquipped = getEquippedMelee(),
             level = getLevel(),
-            area = getCurrentArea(),
-            race = race,
-            raceVersion = raceVersion
+            area = getCurrentArea() -- Thêm dòng này
         }
         local filePath = folder .. "/" .. player.Name .. "_checkZAN.json"
         writefile(filePath, HttpService:JSONEncode(data))
