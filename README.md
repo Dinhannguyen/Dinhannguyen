@@ -1,42 +1,47 @@
+-- Đợi game và LocalPlayer load xong
 repeat wait() until game:IsLoaded() and game.Players.LocalPlayer
 
 local player = game.Players.LocalPlayer
 local Data = player:WaitForChild("Data")
 
+-- Hàm lấy chủng tộc hiện tại
 local function get_race()
     return Data:WaitForChild("Race").Value
 end
 
--- Placeholder for race version check. Adjust based on actual game data structure.
--- For Cyborg V3, it might be checked via unlocked abilities or a specific value/item.
+-- Hàm kiểm tra đã lên Cyborg V3 chưa (bạn cần chỉnh lại nếu game có biến khác)
 local function is_cyborg_v3()
-    return get_race() == "Cyborg" -- and Data:FindFirstChild("V3Unlocked") or similar; replace with accurate check if known.
+    return get_race() == "Cyborg" -- Thêm điều kiện khác nếu cần
 end
 
+-- Hàm kiểm tra có Fist of Darkness chưa
 local function has_fist()
     return player.Backpack:FindFirstChild("Fist of Darkness") or player.Character:FindFirstChild("Fist of Darkness")
 end
 
+-- Tên file đánh dấu đã có Fist of Darkness
+local fod_filename = player.Name .. ".json"
+local hop_filename = player.Name .. "_hop.json"
+
+-- Kiểm tra đã có file mark chưa
+local has_fod_mark = pcall(readfile, fod_filename)
+local has_hop_mark = pcall(readfile, hop_filename)
+
+-- Nếu đã lên Cyborg V3 thì kick
 if is_cyborg_v3() then
     player:Kick("done Cyborg V3")
     return
 end
 
-local fod_filename = player.Name .. ".json"
-local success, _ = pcall(readfile, fod_filename)
-local has_fod_mark = success
-
-local hop_filename = player.Name .. "_hop.json"
-local hop_success, _ = pcall(readfile, hop_filename)
-local has_hop_mark = hop_success
-
+-- Nếu là Cyborg (đang làm nhiệm vụ Cyborg)
 if get_race() == "Cyborg" then
     if not has_hop_mark then
+        -- Đánh dấu đã hop và hop lại server
         writefile(hop_filename, "{}")
         game:GetService("TeleportService"):Teleport(game.PlaceId, player)
         return
     else
-        -- Load Script C config
+        -- Load config Script C
         getgenv().Config = {
             ["Auto Fire Shoot Heart Leviathan"] = false,
             ["Noti Profile"] = false,
@@ -273,11 +278,11 @@ if get_race() == "Cyborg" then
             ["Auto Accept Quest Fishing"] = false,
             ["Value Speed Boat"] = 200
         }
-        repeat wait() until game:IsLoaded() and game.Players.LocalPlayer 
-        getgenv().Key = "e9162fb60364a89d94d75009" 
+        repeat wait() until game:IsLoaded() and game.Players.LocalPlayer
+        getgenv().Key = "e9162fb60364a89d94d75009"
         loadstring(game:HttpGet("https://raw.githubusercontent.com/obiiyeuem/vthangsitink/main/BananaHub.lua"))()
 
-        -- Loop to check for V3 completion
+        -- Vòng lặp kiểm tra hoàn thành V3
         while true do
             wait(1)
             if is_cyborg_v3() then
@@ -287,11 +292,13 @@ if get_race() == "Cyborg" then
         end
     end
 else
+    -- Nếu chưa có mark Fist of Darkness thì chạy Script B
     if not has_fod_mark then
         getgenv().Team = "Marines"
         loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/85e904ae1ff30824c1aa007fc7324f8f.lua"))()
     end
-    -- Load Script B config
+
+    -- Load config Script B
     getgenv().Config = {
         ["Auto Fire Shoot Heart Leviathan"] = false,
         ["Noti Profile"] = false,
@@ -528,14 +535,11 @@ else
         ["Auto Accept Quest Fishing"] = false,
         ["Value Speed Boat"] = 200
     }
-    repeat wait() until game:IsLoaded() and game.Players.LocalPlayer 
-    getgenv().Key = "e9162fb60364a89d94d75009" 
+    repeat wait() until game:IsLoaded() and game.Players.LocalPlayer
+    getgenv().Key = "e9162fb60364a89d94d75009"
     loadstring(game:HttpGet("https://raw.githubusercontent.com/obiiyeuem/vthangsitink/main/BananaHub.lua"))()
 
-    -- Update mark in case
-    local success, _ = pcall(readfile, fod_filename)
-    has_fod_mark = success
-
+    -- Vòng lặp kiểm tra trạng thái
     while true do
         wait(1)
         if is_cyborg_v3() then
@@ -547,6 +551,7 @@ else
             game:GetService("TeleportService"):Teleport(game.PlaceId, player)
             break
         end
+        -- Khi có Fist of Darkness thì tạo file mark để lần sau không chạy lại Script B
         if has_fist() and not has_fod_mark then
             writefile(fod_filename, "{}")
             has_fod_mark = true
